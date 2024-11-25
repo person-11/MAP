@@ -1,0 +1,255 @@
+Sure! I'll provide a step-by-step tutorial for both tasks, with the project being simple and basic to demonstrate how to create an HMS (Hospital Management System) API with Express and then either upload it to Docker or test it using Postman and upload it to GitHub.
+
+### **Task 1: Uploading the HMS API to Docker**
+
+We will first create a simple API with basic CRUD operations using Express and then package it into a Docker container.
+
+#### **Step-by-Step Guide**
+
+##### **Step 1: Set Up the Project**
+
+1. **Create a new folder for your project:**
+   Open a terminal and run:
+   ```bash
+   mkdir hms-api
+   cd hms-api
+   ```
+
+2. **Initialize a new Node.js project:**
+   Run the following command and press enter for the default options:
+   ```bash
+   npm init -y
+   ```
+
+3. **Install required dependencies:**
+   Install Express:
+   ```bash
+   npm install express
+   ```
+
+4. **Create the basic Express API:**
+   In the project folder, create a file named `index.js` and add the following code to create the basic HMS API with CRUD operations:
+
+   ```javascript
+   const express = require('express');
+   const app = express();
+
+   app.use(express.json());
+
+   let patients = [
+     { id: 1, name: 'John Doe', age: 30, disease: 'Fever' },
+     { id: 2, name: 'Jane Smith', age: 25, disease: 'Cold' }
+   ];
+
+   // Get all patients
+   app.get('/patients', (req, res) => {
+     res.json(patients);
+   });
+
+   // Get a patient by ID
+   app.get('/patients/:id', (req, res) => {
+     const patient = patients.find(p => p.id === parseInt(req.params.id));
+     if (!patient) return res.status(404).send('Patient not found');
+     res.json(patient);
+   });
+
+   // Create a new patient
+   app.post('/patients', (req, res) => {
+     const newPatient = req.body;
+     newPatient.id = patients.length + 1;
+     patients.push(newPatient);
+     res.status(201).json(newPatient);
+   });
+
+   // Update a patient by ID
+   app.put('/patients/:id', (req, res) => {
+     const patient = patients.find(p => p.id === parseInt(req.params.id));
+     if (!patient) return res.status(404).send('Patient not found');
+
+     patient.name = req.body.name;
+     patient.age = req.body.age;
+     patient.disease = req.body.disease;
+     res.json(patient);
+   });
+
+   // Delete a patient by ID
+   app.delete('/patients/:id', (req, res) => {
+     const index = patients.findIndex(p => p.id === parseInt(req.params.id));
+     if (index === -1) return res.status(404).send('Patient not found');
+
+     patients.splice(index, 1);
+     res.status(204).send();
+   });
+
+   const PORT = 3000;
+   app.listen(PORT, () => {
+     console.log(`Server is running on port ${PORT}`);
+   });
+   ```
+
+##### **Step 2: Dockerize the Project**
+
+1. **Create a `Dockerfile`:**
+   In the root of the project, create a file named `Dockerfile` with the following content:
+
+   ```Dockerfile
+   # Use the official Node.js image
+   FROM node:14
+
+   # Set the working directory inside the container
+   WORKDIR /usr/src/app
+
+   # Copy package.json and install dependencies
+   COPY package*.json ./
+   RUN npm install
+
+   # Copy the rest of the project files
+   COPY . .
+
+   # Expose the port that the app will run on
+   EXPOSE 3000
+
+   # Command to run the app
+   CMD ["node", "index.js"]
+   ```
+
+2. **Create a `.dockerignore` file:**
+   Create a `.dockerignore` file to avoid copying unnecessary files into the Docker image. It should include:
+   ```
+   node_modules
+   npm-debug.log
+   ```
+
+3. **Build the Docker image:**
+   In your terminal, run the following command in your project directory:
+   ```bash
+   docker build -t hms-api .
+   ```
+
+4. **Run the Docker container:**
+   After the build process is complete, run the container:
+   ```bash
+   docker run -p 3000:3000 hms-api
+   ```
+
+5. **Test the API:**
+   Open a browser or use Postman to test the API on `http://localhost:3000`.
+
+##### **Step 3: Push to Docker Hub (Optional)**
+
+1. **Login to Docker Hub:**
+   If you haven't already, log in to Docker Hub:
+   ```bash
+   docker login
+   ```
+
+2. **Tag the image:**
+   Tag the image with your Docker Hub username and repository name:
+   ```bash
+   docker tag hms-api yourusername/hms-api
+   ```
+
+3. **Push the image:**
+   Push the image to Docker Hub:
+   ```bash
+   docker push yourusername/hms-api
+   ```
+
+Now, your API is running inside a Docker container, and you can share or deploy it wherever Docker is supported.
+
+---
+
+### **Task 2: Testing API Using Postman and Uploading to GitHub**
+
+This task will involve testing the API and uploading the project to GitHub.
+
+#### **Step-by-Step Guide**
+
+##### **Step 1: Set Up the Project (Same as Task 1)**
+
+Follow the same steps as in Task 1 to create the basic Express API in the `hms-api` folder. You can skip the Dockerization steps for this task.
+
+##### **Step 2: Test the API Using Postman**
+
+1. **Open Postman:**
+   If you don't have Postman installed, download and install it from [here](https://www.postman.com/downloads/).
+
+2. **Test the GET `/patients` endpoint:**
+   - Open Postman and create a new request.
+   - Select `GET` as the method and enter the URL `http://localhost:3000/patients`.
+   - Click on `Send`.
+   - You should get a JSON response containing the list of patients.
+
+3. **Test the POST `/patients` endpoint:**
+   - Create a new request and select `POST`.
+   - Enter the URL `http://localhost:3000/patients`.
+   - In the `Body` tab, select `raw` and choose `JSON` as the format.
+   - Add a new patient JSON object:
+     ```json
+     {
+       "name": "Alice Johnson",
+       "age": 40,
+       "disease": "Headache"
+     }
+     ```
+   - Click on `Send`.
+   - The server should return the newly created patient.
+
+4. **Test the GET `/patients/:id` endpoint:**
+   - Create a new request with `GET` and use the URL `http://localhost:3000/patients/1`.
+   - You should see the details of the patient with `id = 1`.
+
+5. **Test the PUT `/patients/:id` endpoint:**
+   - Create a new request with `PUT` and use the URL `http://localhost:3000/patients/1`.
+   - In the `Body` tab, provide updated data for the patient:
+     ```json
+     {
+       "name": "John Doe Updated",
+       "age": 31,
+       "disease": "Fever - Severe"
+     }
+     ```
+   - Click on `Send` to update the patient.
+
+6. **Test the DELETE `/patients/:id` endpoint:**
+   - Create a new request with `DELETE` and use the URL `http://localhost:3000/patients/1`.
+   - Click on `Send` to delete the patient with `id = 1`.
+
+##### **Step 3: Upload the Project to GitHub**
+
+1. **Create a new GitHub repository:**
+   Go to GitHub, log in, and create a new repository. Name it `hms-api`.
+
+2. **Initialize the Git repository:**
+   In the terminal, run the following commands in the project directory:
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit of HMS API"
+   ```
+
+3. **Add the remote repository:**
+   Copy the repository URL from GitHub and run:
+   ```bash
+   git remote add origin https://github.com/yourusername/hms-api.git
+   ```
+
+4. **Push the code to GitHub:**
+   Finally, push your code to GitHub:
+   ```bash
+   git push -u origin master
+   ```
+
+Now, your project is on GitHub and the API has been tested using Postman!
+
+---
+
+### **Conclusion**
+
+In this tutorial, you've learned how to:
+
+- Create a simple Express API for a Hospital Management System (HMS).
+- Dockerize the API and run it in a container (Task 1).
+- Test the API using Postman and upload the project to GitHub (Task 2).
+
+Both tasks involve simple steps to demonstrate the core concepts and can be expanded upon for more complex projects in the future.
